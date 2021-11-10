@@ -12,14 +12,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+with open('group_id.txt') as f:
+    group_id = int(f.read())
 
 def chegg(update: Update, context: CallbackContext) -> None:
     """Echo the user message."""
     timestamp = time.strftime('%a %H:%M:%S')
     print(f"{timestamp}: {update.message.chat_id}: {update.message.text}")
     # Ignore messages outside of specified group
-    with open('group_id.txt') as f:
-        group_id = f.read()
     if update.message.chat_id != group_id:
         return
 
