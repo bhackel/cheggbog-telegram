@@ -31,6 +31,7 @@ def chegg(update: Update, context: CallbackContext) -> None:
         print(f' Chegging {url_list}')
         for url in url_list:
             # Open Chegg link
+            update.message.reply_text("Chegging...")
             webbrowser.open(url)
             time.sleep(5)
 
@@ -46,12 +47,16 @@ def chegg(update: Update, context: CallbackContext) -> None:
             keyboard.press_and_release('ctrl+w')
 
             # Get the file of the image by finding the newest one
-            path = "C:/Users/[Your Username]/Downloads/screenshots/*"
+            path = "C:/Users/bryce/Downloads/screenshots/*"
             file_loc = max(glob.glob(path, recursive=True), key=os.path.getmtime)
 
             # Send the image
             with open(file_loc, 'rb') as f:
-                update.message.reply_photo(f)
+                try:
+                    update.message.reply_document(f)
+                except Exception as e:
+                    print("Errored out, trying again:", e)
+                    update.message.reply_photo(f)
 
             # Delete the image
             os.remove(file_loc)
