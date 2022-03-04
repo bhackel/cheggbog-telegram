@@ -47,7 +47,7 @@ def chegg(update: Update, context: CallbackContext) -> None:
             keyboard.press_and_release('ctrl+w')
 
             # Get the file of the image by finding the newest one
-            path = "C:/Users/bryce/Downloads/screenshots/*"
+            path = "C:/Users/[Your Username]/Downloads/screenshots/*"
             file_loc = max(glob.glob(path, recursive=True), key=os.path.getmtime)
 
             # Send the image
