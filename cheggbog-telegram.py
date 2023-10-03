@@ -5,29 +5,29 @@ import re
 import time
 import webbrowser
 
-from telegram import Update, ForceReply
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram import Update
+from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
 from pynput.keyboard import Key, Controller
 
 keyboard = Controller()
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
-logger = logging.getLogger(__name__)
 
 # Read the id of the group that this bot will work in
 with open('group_id.txt') as f:
     group_id = int(f.read())
 
 
-def chegg(update: Update, context: CallbackContext) -> None:
+async def chegg(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Log the message
     timestamp = time.strftime('%a %H:%M:%S')
     print(f"{timestamp}: {update.message.chat_id}: {update.message.text}")
     # Ignore messages outside the specified group
-    if update.message.chat_id != group_id:
+    if update.effective_chat.id != group_id:
         return
 
     # Search for Chegg links in messages
@@ -37,9 +37,9 @@ def chegg(update: Update, context: CallbackContext) -> None:
         print(f' Chegging {url_list}')
         for url in url_list:
             # Open Chegg link
-            update.message.reply_text("Chegging...")
+            await update.message.reply_text("Chegging...")
             webbrowser.open(f'https://{url}')
-            time.sleep(8)
+            time.sleep(12)
 
             # Trigger the screenshot extension
             with keyboard.pressed(Key.alt), keyboard.pressed(Key.shift):
@@ -69,10 +69,10 @@ def chegg(update: Update, context: CallbackContext) -> None:
             # Send the image
             with open(file_loc, 'rb') as f:
                 try:
-                    update.message.reply_document(f)
+                    await update.message.reply_document(f)
                 except Exception as e:
                     print("Errored out, trying again:", e)
-                    update.message.reply_photo(f)
+                    await update.message.reply_photo(f)
 
             # Delete the image
             os.remove(file_loc)
@@ -83,16 +83,14 @@ def main() -> None:
     # Create the Updater and pass it your bot's token.
     with open('key.txt') as f:
         key = f.read().strip()
-    updater = Updater(key)
 
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, chegg))
+    application = ApplicationBuilder().token(key).build()
+    
+    chegg_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), chegg)
+    
+    application.add_handler(chegg_handler)
 
-    # Start the Bot
-    updater.start_polling()
-
-    updater.idle()
+    application.run_polling()
 
 
 if __name__ == '__main__':
